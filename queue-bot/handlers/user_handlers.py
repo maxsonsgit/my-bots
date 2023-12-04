@@ -9,6 +9,9 @@ from lexicon.lexicon_ru import LEXICON_RU
 router = Router()
 
 
+# TODO: добавить к каждаму пользователю ссылку на его аккаунт в телеграме
+
+
 @router.message(Command("start"))
 async def process_start_command(message: Message):
     await message.answer(LEXICON_RU["/start"])
@@ -59,11 +62,15 @@ async def process_disagree_command(message: Message, bot: Bot):
 
 @router.message(Command("swap"))
 async def process_swap_command(message: Message, bot: Bot):
-    new_queue_number = int(message.text.split()[-1])
-    new_user_id = db.get_user_id(new_queue_number)
-    await send_captcha(new_user_id, bot)
-    await message.answer(text=LEXICON_RU["/swap"])
-    db.insert_request(message.from_user.id, new_user_id)
+    new_queue_number = message.text.split()[-1]
+    if new_queue_number.isdigit():
+        new_queue_number = int(new_queue_number)
+        new_user_id = db.get_user_id(new_queue_number)
+        await send_captcha(new_user_id, bot)
+        await message.answer(text=LEXICON_RU["/swap"])
+        db.insert_request(message.from_user.id, new_user_id)
+    else:
+        await message.answer(text=LEXICON_RU["/swap_error"])
 
 
 @router.message(Command("show"))
